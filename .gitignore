@@ -3,4 +3,5 @@
 *.run
 *.out
 *.log
+*.svg
 batlogger
