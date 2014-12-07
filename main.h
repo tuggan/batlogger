@@ -32,7 +32,6 @@
 
 void logLoop();
 size_t getValueFromFile(char *filepath, char *buffer, size_t buffsize);
-void printWithTime(char *batstr);
 void sighandler(int signo);
 void writePid(char *file);
 void deletePid(char *file);

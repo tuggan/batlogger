@@ -60,23 +60,6 @@ size_t getValueFromFile(char *filepath, char *buffer, size_t buffsize) {
     return read;
 }
 
-void printWithTime(char *batstr) {
-    time_t rawtime;
-    struct tm *ti;
-
-    time(&rawtime);
-    ti = localtime(&rawtime);
-
-    printf("[%i-%0.2i-%0.2i %0.2i:%0.2i:%0.2i] %s\n",
-           ti->tm_year+1900,
-           ti->tm_mon,
-           ti->tm_mday,
-           ti->tm_hour,
-           ti->tm_min,
-           ti->tm_sec,
-           batstr);
-}
-
 void sighandler(int signo) {
     running = 0;
 }
