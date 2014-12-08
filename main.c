@@ -22,10 +22,18 @@ int running = 1;
 int main(int argc, char *argv[]) {
     bool daemonize;
     int opt;
-    while((opt = getopt(argc, argv, "d")) != -1) {
+    char logfile[] = LOGFILE, pidfile[] = PIDFILE, batfile[] = BATPATH;
+    int sleeptime = SLEEPTIME;
+    while((opt = getopt(argc, argv, "dS:P:b:")) != -1) {
         switch(opt) {
         case 'd':
             daemonize = true;
+            break;
+        case 'S':
+            sleeptime = atoi(optarg);
+            if(sleeptime < 1)
+                sleeptime = SLEEPTIME;
+            break;
         }
     }
 
@@ -34,21 +42,45 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     signal(SIGINT, sighandler);
-    writePid(PIDFILE);
-    logLoop();
-    deletePid(PIDFILE);
+    signal(SIGTERM, sighandler);
+    writePid(pidfile);
+    logLoop(batfile, logfile, sleeptime * 1000L);
+    deletePid(pidfile);
     return 0;
 }
 
-void logLoop() {
+void logLoop(char *batfile, char *logfile, long sleeptime) {
     char batstr[10];
-    long read;
+    long read, old[10], oldSize = 0;
     while(running) {
-        read = getValueFromFile(BATPATH, batstr, 10);
-        batstr[read-1] = '\0';
-        saveToFile(LOGFILE, batstr);
-        usleep(SLEEPTIME);
+        printf("########## old size %ld ##########\n", oldSize);
+        read = getValueFromFile(batfile, batstr, 10);
+        if(oldSize < 10)
+            oldSize += 1;
+        moveBackOld(old, oldSize);
+        old[0] = atol(batstr);
+        saveToFile(logfile, getAverage(old, oldSize));
+        usleep(sleeptime);
     }
+}
+
+void moveBackOld(long *old, long size) {
+    long i;
+    for(i = size-1; i > 0; i--) {
+        old[i] = old[i-1];
+        printf("size[%ld] %ld = %ld\n",size,  old[i], old[i-1]);
+    }
+}
+
+long getAverage(long *values, long size) {
+    long long sum = 0;
+    long i;
+    for(i = 0; i < size; i++) {
+        sum += values[i];
+        printf("Sum[%ld]: %lld\n", i, sum);
+    }
+    long ret = sum/size;
+    return ret;
 }
 
 size_t getValueFromFile(char *filepath, char *buffer, size_t buffsize) {
@@ -61,7 +93,11 @@ size_t getValueFromFile(char *filepath, char *buffer, size_t buffsize) {
 }
 
 void sighandler(int signo) {
-    running = 0;
+    switch(signo) {
+    case SIGTERM:
+    case SIGINT:
+        running = 0;
+    }
 }
 
 void writePid(char *file) {
@@ -76,7 +112,7 @@ void deletePid(char *file) {
     remove(file);
 }
 
-char saveToFile(char *filename, char *batstr) {
+char saveToFile(char *filename, long batcharge) {
     FILE *f = fopen(filename, "a+");
     if(f == NULL)
         return -1;
@@ -87,14 +123,14 @@ char saveToFile(char *filename, char *batstr) {
     time(&rawtime);
     ti = localtime(&rawtime);
 
-    int ret = fprintf(f, "[%i-%0.2i-%0.2i %0.2i:%0.2i:%0.2i] %s\n",
+    int ret = fprintf(f, "[%i-%0.2i-%0.2i %0.2i:%0.2i:%0.2i] %ld\n",
                       ti->tm_year+1900,
                       ti->tm_mon,
                       ti->tm_mday,
                       ti->tm_hour,
                       ti->tm_min,
                       ti->tm_sec,
-                      batstr);
+                      batcharge);
     fclose(f);
     return ret;
 }
