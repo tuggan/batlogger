@@ -18,6 +18,7 @@
 #include "main.h"
 
 int running = 1;
+long oldSize;
 
 int main(int argc, char *argv[]) {
     bool daemonize;
@@ -43,6 +44,7 @@ int main(int argc, char *argv[]) {
     }
     signal(SIGINT, sighandler);
     signal(SIGTERM, sighandler);
+    signal(SIGCONT, sighandler);
     writePid(pidfile);
     logLoop(batfile, logfile, sleeptime * 1000L);
     deletePid(pidfile);
@@ -51,9 +53,9 @@ int main(int argc, char *argv[]) {
 
 void logLoop(char *batfile, char *logfile, long sleeptime) {
     char batstr[10];
-    long read, old[10], oldSize = 0;
+    long read, old[10];
+    oldSize = 0;
     while(running) {
-        printf("########## old size %ld ##########\n", oldSize);
         read = getValueFromFile(batfile, batstr, 10);
         if(oldSize < 10)
             oldSize += 1;
@@ -66,19 +68,15 @@ void logLoop(char *batfile, char *logfile, long sleeptime) {
 
 void moveBackOld(long *old, long size) {
     long i;
-    for(i = size-1; i > 0; i--) {
+    for(i = size-1; i > 0; i--)
         old[i] = old[i-1];
-        printf("size[%ld] %ld = %ld\n",size,  old[i], old[i-1]);
-    }
 }
 
 long getAverage(long *values, long size) {
     long long sum = 0;
     long i;
-    for(i = 0; i < size; i++) {
+    for(i = 0; i < size; i++)
         sum += values[i];
-        printf("Sum[%ld]: %lld\n", i, sum);
-    }
     long ret = sum/size;
     return ret;
 }
@@ -97,6 +95,9 @@ void sighandler(int signo) {
     case SIGTERM:
     case SIGINT:
         running = 0;
+        break;
+    case SIGCONT:
+        oldSize = 0;
     }
 }
 
