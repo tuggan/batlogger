@@ -10,6 +10,9 @@ all: $(EXECUTABLE)
 debug: CFLAGS += -g -DDEBUG 
 debug: $(EXECUTABLE)
 
+profile: CFLAGS += -pg
+profile: debug
+
 $(EXECUTABLE): main.o
 	$(CC) $(LDFLAGS) main.o -o $@
 
