@@ -38,9 +38,23 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if(daemonize && daemon(1, 1) != 0) {
-        fprintf(stderr,"Could not daemonize process!");
-        exit(1);
+    if(daemonize) {
+        int pid = fork();
+        if(pid == 0) {
+            int fd = open("/dev/null", O_RDWR);
+            if(fd == -1) {
+                fprintf(stderr, "Could not open /dev/null "\
+                        "for output redirecting.\n");
+            } else {
+                dup2(fd, STDIN_FILENO);
+                dup2(fd, STDOUT_FILENO);
+                dup2(fd, STDERR_FILENO);
+            }
+            printf("I hope this worked!\n");
+        } else {
+            printf("Daemonized process.\n");
+            exit(0);
+        }
     }
     signal(SIGINT, sighandler);
     signal(SIGTERM, sighandler);

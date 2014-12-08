@@ -21,7 +21,7 @@
 #define BATPATH "/sys/class/power_supply/BAT0/energy_now"
 #define LOGFILE "./bat.log"
 #define PIDFILE "./run.pid"
-#define SLEEPTIME 1000
+#define SLEEPTIME 10000
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -29,6 +29,8 @@
 #include <signal.h>
 #include <getopt.h>
 #include <stdbool.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 void logLoop(char *batfile, char *logfile, long sleeptime);
 void moveBackOld(long *old, long size);
