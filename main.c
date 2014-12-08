@@ -116,6 +116,7 @@ void sighandler(int signo) {
         break;
     case SIGCONT:
         oldSize = 0;
+        break;
     }
 }
 
