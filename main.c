@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
                 dup2(fd, STDIN_FILENO);
                 dup2(fd, STDOUT_FILENO);
                 dup2(fd, STDERR_FILENO);
+                close(fd);
             }
-            printf("I hope this worked!\n");
         } else {
             printf("Daemonized process.\n");
             exit(0);
