@@ -33,6 +33,7 @@
 #include <fcntl.h>
 
 void logLoop(char *batfile, char *logfile, long sleeptime);
+void getAverageVals(char *batfile, long *old, long sleeptime);
 void moveBackOld(long *old, long size);
 long getAverage(long *values, long size);
 size_t getValueFromFile(char *filepath, char *buffer, size_t buffsize);

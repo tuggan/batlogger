@@ -66,23 +66,27 @@ int main(int argc, char *argv[]) {
 }
 
 void logLoop(char *batfile, char *logfile, long sleeptime) {
-    char batstr[10];
-    long read, old[10];
+    long old[10];
     oldSize = 0;
     while(running) {
-        read = getValueFromFile(batfile, batstr, 10);
-        if(oldSize < 10)
-            oldSize += 1;
-        moveBackOld(old, oldSize);
-        old[0] = atol(batstr);
+        getAverageVals(batfile, old, sleeptime);
         saveToFile(logfile, getAverage(old, oldSize));
-        usleep(sleeptime);
     }
+}
+
+void getAverageVals(char *batfile, long *old, long sleeptime) {
+    char batstr[10];
+    for(oldSize = 0; oldSize < 10 && running; oldSize++) {
+            getValueFromFile(batfile, batstr, 10);
+            moveBackOld(old, oldSize);
+            old[0] = atol(batstr);
+            usleep(sleeptime/10);
+        }
 }
 
 void moveBackOld(long *old, long size) {
     long i;
-    for(i = size-1; i > 0; i--)
+    for(i = size; i > 0; i--)
         old[i] = old[i-1];
 }
 
