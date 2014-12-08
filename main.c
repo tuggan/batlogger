@@ -23,7 +23,7 @@ long oldSize;
 int main(int argc, char *argv[]) {
     bool daemonize;
     int opt;
-    char logfile[] = LOGFILE, pidfile[] = PIDFILE, batfile[] = BATPATH;
+    char logfile[] = LOGFILE, pidfile[] = PIDFILE, batfile[] = BATPATH, batmax[] = BATMAX;
     int sleeptime = SLEEPTIME;
     while((opt = getopt(argc, argv, "dS:P:b:")) != -1) {
         switch(opt) {
@@ -60,17 +60,19 @@ int main(int argc, char *argv[]) {
     signal(SIGTERM, sighandler);
     signal(SIGCONT, sighandler);
     writePid(pidfile);
-    logLoop(batfile, logfile, sleeptime * 1000L);
+    logLoop(batfile, batmax, logfile, sleeptime * 1000L);
     deletePid(pidfile);
     return 0;
 }
 
-void logLoop(char *batfile, char *logfile, long sleeptime) {
+void logLoop(char *batfile, char *batmax, char *logfile, long sleeptime) {
     long old[10];
+    char max[10];
     oldSize = 0;
     while(running) {
         getAverageVals(batfile, old, sleeptime);
-        saveToFile(logfile, getAverage(old, oldSize));
+        getValueFromFile(batmax, max, 10);
+        saveToFile(logfile, getAverage(old, oldSize), atol(max));
     }
 }
 
@@ -132,7 +134,7 @@ void deletePid(char *file) {
     remove(file);
 }
 
-char saveToFile(char *filename, long batcharge) {
+char saveToFile(char *filename, long batcharge, long batmax) {
     FILE *f = fopen(filename, "a+");
     if(f == NULL)
         return -1;
@@ -143,14 +145,15 @@ char saveToFile(char *filename, long batcharge) {
     time(&rawtime);
     ti = localtime(&rawtime);
 
-    int ret = fprintf(f, "[%i-%0.2i-%0.2i %0.2i:%0.2i:%0.2i] %ld\n",
+    int ret = fprintf(f, "[%i-%0.2i-%0.2i %0.2i:%0.2i:%0.2i] %ld %ld\n",
                       ti->tm_year+1900,
                       ti->tm_mon,
                       ti->tm_mday,
                       ti->tm_hour,
                       ti->tm_min,
                       ti->tm_sec,
-                      batcharge);
+                      batcharge,
+                      batmax);
     fclose(f);
     return ret;
 }

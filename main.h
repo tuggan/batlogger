@@ -19,6 +19,7 @@
 #define MAIN_H
 
 #define BATPATH "/sys/class/power_supply/BAT0/energy_now"
+#define BATMAX "/sys/class/power_supply/BAT0/energy_full"
 #define LOGFILE "./bat.log"
 #define PIDFILE "./run.pid"
 #define SLEEPTIME 10000
@@ -32,7 +33,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-void logLoop(char *batfile, char *logfile, long sleeptime);
+void logLoop(char *batfile, char *batmax, char *logfile, long sleeptime);
 void getAverageVals(char *batfile, long *old, long sleeptime);
 void moveBackOld(long *old, long size);
 long getAverage(long *values, long size);
@@ -40,7 +41,7 @@ size_t getValueFromFile(char *filepath, char *buffer, size_t buffsize);
 void sighandler(int signo);
 void writePid(char *file);
 void deletePid(char *file);
-char saveToFile(char *filename, long batcharge);
+char saveToFile(char *filename, long batcharge, long batmax);
 
 
 
