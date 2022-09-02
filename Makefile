@@ -1,11 +1,10 @@
 CC=clang
-CFLAGS=-c -Wall 
+CFLAGS=-c -Wall
 LDFLAGS=
 EXECUTABLE=batlogger
+OBJ = main.o fs.o battery.o
 
 all: $(EXECUTABLE)
-
-.PHONY: debug
 
 debug: CFLAGS += -g -DDEBUG 
 debug: $(EXECUTABLE)
@@ -13,11 +12,11 @@ debug: $(EXECUTABLE)
 profile: CFLAGS += -pg
 profile: debug
 
-$(EXECUTABLE): main.o
-	$(CC) $(LDFLAGS) main.o -o $@
+$(EXECUTABLE): $(OBJ)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
-main.o: main.c main.h
-	$(CC) $(CFLAGS) main.c -o $@
+%.o: %.c %.h
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 .PHONY: plot clean
 plot: plot.plt

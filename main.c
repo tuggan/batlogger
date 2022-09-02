@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
                 close(fd);
             }
         } else {
-            printf("Daemonized logger.\n");
+            printf("Daemonized process.\n");
             exit(0);
         }
     }
@@ -78,20 +78,25 @@ void printHelp(char *name) {
 }
 
 void logLoop(char *batfile, char *batmax, char *logfile, long sleeptime) {
-    long old[10];
-    char max[10];
     oldSize = 0;
+    batteries *batteries = get_batteries();
     while(running) {
-        getAverageVals(batfile, old, sleeptime);
-        getValueFromFile(batmax, max, 10);
-        saveToFile(logfile, getAverage(old, oldSize), atol(max));
+      for (int i = 0; i < batteries->num_batteries; i++) {
+        get_battery(batteries->batteries[i]);
+        printf("Bat: %s %d\n", batteries->batteries[i]->name, batteries->batteries[i]->capacity);
+      }
+      //getAverageVals(batfile, old, sleeptime);
+        //getValueFromFile(batmax, max, 10);
+        saveToFile(logfile, batteries);
+        usleep(sleeptime/10);
     }
+    free_batteries(batteries);
 }
 
 void getAverageVals(char *batfile, long *old, long sleeptime) {
     char batstr[10];
     for(oldSize = 0; oldSize < 10 && running; oldSize++) {
-            getValueFromFile(batfile, batstr, 10);
+      //getValueFromFile(batfile, batstr, 10);
             moveBackOld(old, oldSize);
             old[0] = atol(batstr);
             usleep(sleeptime/10);
@@ -111,15 +116,6 @@ long getAverage(long *values, long size) {
         sum += values[i];
     long ret = sum/size;
     return ret;
-}
-
-size_t getValueFromFile(char *filepath, char *buffer, size_t buffsize) {
-    FILE *f = fopen(filepath, "r");
-    if(!f)
-        return 0;
-    size_t read = fread(buffer, sizeof(char), buffsize, f);
-    fclose(f);
-    return read;
 }
 
 void sighandler(int signo) {
@@ -146,7 +142,7 @@ void deletePid(char *file) {
     remove(file);
 }
 
-char saveToFile(char *filename, long batcharge, long batmax) {
+char saveToFile(char *filename, batteries *batteries) {
     FILE *f = fopen(filename, "a+");
     if(f == NULL)
         return -1;
@@ -157,34 +153,22 @@ char saveToFile(char *filename, long batcharge, long batmax) {
     time(&rawtime);
     ti = localtime(&rawtime);
 
-    int ret = fprintf(f, "[%i-%0.2i-%0.2i %0.2i:%0.2i:%0.2i] %ld %ld\n",
+    int ret = fprintf(f, "[%i-%0.2i-%0.2i %0.2i:%0.2i:%0.2i] ",
                       ti->tm_year+1900,
                       ti->tm_mon,
                       ti->tm_mday,
                       ti->tm_hour,
                       ti->tm_min,
-                      ti->tm_sec,
-                      batcharge,
-                      batmax);
+                      ti->tm_sec);
+    for (int i = 0; i < batteries->num_batteries; i++) {
+      battery *bat = batteries->batteries[i];
+        ret = fprintf(f, "%s %d %ld ", bat->name, bat->capacity, bat->energy_full);
+
+    }
+    fprintf(f, "\n");
+    
     fclose(f);
     return ret;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

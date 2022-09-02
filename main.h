@@ -18,11 +18,16 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#define BATPATH "/sys/class/power_supply/BAT0/energy_now"
-#define BATMAX "/sys/class/power_supply/BAT0/energy_full"
+#define BATPATH "/sys/class/power_supply"
+#define BATNOW "energy_now"
+#define BATMAX "energy_full"
+#define BATPREFIX "BAT"
 #define LOGFILE "./bat.log"
 #define PIDFILE "./run.pid"
 #define SLEEPTIME 10000
+
+#include "battery.h"
+
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -33,16 +38,16 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+
 void printHelp(char *name);
 void logLoop(char *batfile, char *batmax, char *logfile, long sleeptime);
 void getAverageVals(char *batfile, long *old, long sleeptime);
 void moveBackOld(long *old, long size);
 long getAverage(long *values, long size);
-size_t getValueFromFile(char *filepath, char *buffer, size_t buffsize);
 void sighandler(int signo);
 void writePid(char *file);
 void deletePid(char *file);
-char saveToFile(char *filename, long batcharge, long batmax);
+char saveToFile(char *filename, batteries *batteries);
 
 
 
