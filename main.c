@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014 Dennis Vesterlund
+ *    Copyright 2014,2022 Dennis Vesterlund
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -25,8 +25,11 @@ int main(int argc, char *argv[]) {
     int opt;
     char logfile[] = LOGFILE, pidfile[] = PIDFILE, batfile[] = BATPATH, batmax[] = BATMAX;
     int sleeptime = SLEEPTIME;
-    while((opt = getopt(argc, argv, "dS:P:b:")) != -1) {
+    while((opt = getopt(argc, argv, "hdS:P:b:")) != -1) {
         switch(opt) {
+        case 'h':
+          printHelp(argv[0]);
+          exit(0);
         case 'd':
             daemonize = true;
             break;
@@ -52,7 +55,7 @@ int main(int argc, char *argv[]) {
                 close(fd);
             }
         } else {
-            printf("Daemonized process.\n");
+            printf("Daemonized logger.\n");
             exit(0);
         }
     }
@@ -63,6 +66,15 @@ int main(int argc, char *argv[]) {
     logLoop(batfile, batmax, logfile, sleeptime * 1000L);
     deletePid(pidfile);
     return 0;
+}
+
+void printHelp(char *name) {
+  printf("%s [hdS]\n\
+    Log the battery level to a file.\n\n\
+    Options:\n\
+        -h          : Print this help.\n\
+        -d          : Fork the logger and kill the main process.\n\
+        -S <seconds>: Time to sleep in seconds?\n", name);
 }
 
 void logLoop(char *batfile, char *batmax, char *logfile, long sleeptime) {

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014 Dennis Vesterlund
+ *    Copyright 2014,2022 Dennis Vesterlund
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+void printHelp(char *name);
 void logLoop(char *batfile, char *batmax, char *logfile, long sleeptime);
 void getAverageVals(char *batfile, long *old, long sleeptime);
 void moveBackOld(long *old, long size);
