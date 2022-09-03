@@ -18,34 +18,15 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#define BATPATH "/sys/class/power_supply"
-#define BATNOW "energy_now"
-#define BATMAX "energy_full"
-#define BATPREFIX "BAT"
 #define LOGFILE "./bat.log"
-#define PIDFILE "./run.pid"
 #define SLEEPTIME 10000
 
 #include "battery.h"
-
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <getopt.h>
-#include <stdbool.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 
 void printHelp(char *name);
 void logLoop(char *logfile, long sleeptime);
 void sighandler(int signo);
 char saveToFile(char *filename, batteries *batteries);
-
-
-
 
 #endif // MAIN_H
 

@@ -16,6 +16,15 @@
  */
 
 #include "main.h"
+#include <fcntl.h>
+#include <getopt.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
 
 int running = 1;
 
@@ -54,6 +63,9 @@ void printHelp(char *name) {
 void logLoop(char *logfile, long sleeptime) {
     batteries *batteries = get_batteries();
     while(running) {
+      for (int i = 0; i < batteries->num_batteries; i++) {
+        get_battery(batteries->batteries[i]);
+      }
         saveToFile(logfile, batteries);
         usleep(sleeptime/10);
     }
