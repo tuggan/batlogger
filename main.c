@@ -48,17 +48,12 @@ void printHelp(char *name) {
     Log the battery level to a file.\n\n\
     Options:\n\
         -h          : Print this help.\n\
-        -d          : Fork the logger and kill the main process.\n\
         -S <seconds>: Time to sleep in seconds?\n", name);
 }
 
 void logLoop(char *logfile, long sleeptime) {
     batteries *batteries = get_batteries();
     while(running) {
-      for (int i = 0; i < batteries->num_batteries; i++) {
-        get_battery(batteries->batteries[i]);
-        printf("Bat: %s %d\n", batteries->batteries[i]->name, batteries->batteries[i]->capacity);
-      }
         saveToFile(logfile, batteries);
         usleep(sleeptime/10);
     }
@@ -96,7 +91,7 @@ char saveToFile(char *filename, batteries *batteries) {
                       ti->tm_sec);
     for (int i = 0; i < batteries->num_batteries; i++) {
       battery *bat = batteries->batteries[i];
-        ret = fprintf(f, "%s %d %ld ", bat->name, bat->capacity, bat->energy_full);
+      ret = fprintf(f, "%s %d %ld %s ", bat->name, bat->capacity, bat->energy_full, bat->status);
 
     }
     fprintf(f, "\n");

@@ -48,6 +48,7 @@ struct battery *initiate_battery(char *battery_name) {
   battery->serial_number = calloc(sizeof(char), BAT_STR_SIZE);
   battery->technology = calloc(sizeof(char), BAT_STR_SIZE);
   battery->type = calloc(sizeof(char), BAT_STR_SIZE);
+  battery->status = calloc(sizeof(char), BAT_STR_SIZE);
   strncpy(battery->name, battery_name, BAT_STR_SIZE);
   battery->path = join_path(BAT_PATH, battery_name);
   return battery;
@@ -122,6 +123,12 @@ void get_battery(struct battery *battery) {
   cur_path = join_path(battery->path, BAT_TYPE);
   battery->type_len = get_value_from_file(cur_path, battery->type, BAT_STR_SIZE);
   free(cur_path);
+
+  // TODO what if file does not exists?
+  cur_path = join_path(battery->path, BAT_STATUS);
+  battery->status_len =
+      get_value_from_file(cur_path, battery->status, BAT_STR_SIZE);
+  free(cur_path);
 }
 
 void free_batteries(struct batteries *batteries) {
@@ -139,5 +146,6 @@ void free_battery(struct battery *battery) {
   free(battery->technology);
   free(battery->type);
   free(battery->path);
+  free(battery->status);
   free(battery);
 }

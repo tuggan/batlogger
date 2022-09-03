@@ -41,6 +41,7 @@
 #define BAT_SERIAL_NUMBER      "serial_number"
 #define BAT_TECHNOLOGY         "technology"
 #define BAT_TYPE               "type"
+#define BAT_STATUS             "status"
 
 #define BAT_STR_SIZE 255
 
@@ -69,6 +70,8 @@ typedef struct battery {
   size_t technology_len;
   char *type;
   size_t type_len;
+  char *status;
+  size_t status_len;
 } battery;
 
 typedef struct batteries {
