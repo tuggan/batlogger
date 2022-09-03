@@ -18,6 +18,7 @@
 #include "battery.h"
 #include "fs.h"
 
+#include <stddef.h>
 #include <string.h>
 
 
@@ -65,70 +66,56 @@ void get_battery(struct battery *battery) {
     return;
   }
 
-  char *cur_path;
+  battery->capacity = get_int(battery->path, BAT_CAPACITY);
+  battery->cycle_count = get_long(battery->path, BAT_CYCLE_COUNT);
+  battery->energy_full = get_long(battery->path, BAT_ENERGY_FULL);
+  battery->energy_full_design = get_long(battery->path, BAT_ENERGY_FULL_DESIGN);
+  battery->energy_now = get_long(battery->path, BAT_ENERGY_NOW);
+  battery->power_now = get_long(battery->path, BAT_POWER_NOW);
+  battery->voltage_min_design = get_long(battery->path, BAT_VOLTAGE_MIN_DESIGN);
+  battery->voltage_now = get_long(battery->path, BAT_VOLTAGE_NOW);
 
-  cur_path = join_path(battery->path, BAT_CAPACITY);
-  battery->capacity = (is_file(cur_path))? get_int_from_file(cur_path): 0;
-  free(cur_path);
-
-  cur_path = join_path(battery->path, BAT_CYCLE_COUNT);
-  battery->cycle_count = (is_file(cur_path))? get_long_from_file(cur_path): 0;
-  free(cur_path);
-
-  cur_path = join_path(battery->path, BAT_ENERGY_FULL);
-  battery->energy_full = (is_file(cur_path))? get_long_from_file(cur_path): 0;
-  free(cur_path);
-
-  cur_path = join_path(battery->path, BAT_ENERGY_FULL_DESIGN);
-  battery->energy_full_design = (is_file(cur_path))? get_long_from_file(cur_path): 0;
-  free(cur_path);
-
-  cur_path = join_path(battery->path, BAT_ENERGY_NOW);
-  battery->energy_now = (is_file(cur_path))? get_long_from_file(cur_path): 0;
-  free(cur_path);
-
-  cur_path = join_path(battery->path, BAT_POWER_NOW);
-  battery->power_now = (is_file(cur_path))? get_long_from_file(cur_path): 0;
-  free(cur_path);
-
-  cur_path = join_path(battery->path, BAT_VOLTAGE_MIN_DESIGN);
-  battery->voltage_min_design = (is_file(cur_path))? get_long_from_file(cur_path): 0;
-  free(cur_path);
-
-  cur_path = join_path(battery->path, BAT_VOLTAGE_NOW);
-  battery->voltage_now = (is_file(cur_path))? get_long_from_file(cur_path): 0;
-  free(cur_path);
-
-  // TODO what if file does not exists?
-  cur_path = join_path(battery->path, BAT_MANUFACTURER);
-  battery->manufacturer_len = get_value_from_file(cur_path, battery->manufacturer, BAT_STR_SIZE);
-  free(cur_path);
-
-  // TODO what if file does not exists?
-  cur_path = join_path(battery->path, BAT_MODEL_NAME);
-  battery->model_name_len = get_value_from_file(cur_path, battery->model_name, BAT_STR_SIZE);
-  free(cur_path);
-
-  // TODO what if file does not exists?
-  cur_path = join_path(battery->path, BAT_SERIAL_NUMBER);
-  battery->serial_number_len = get_value_from_file(cur_path, battery->serial_number, BAT_STR_SIZE);
-  free(cur_path);
-
-  // TODO what if file does not exists?
-  cur_path = join_path(battery->path, BAT_TECHNOLOGY);
-  battery->technology_len = get_value_from_file(cur_path, battery->technology, BAT_STR_SIZE);
-  free(cur_path);
-
-  // TODO what if file does not exists?
-  cur_path = join_path(battery->path, BAT_TYPE);
-  battery->type_len = get_value_from_file(cur_path, battery->type, BAT_STR_SIZE);
-  free(cur_path);
-
-  // TODO what if file does not exists?
-  cur_path = join_path(battery->path, BAT_STATUS);
+  battery->manufacturer_len =
+      get_str(battery->manufacturer, battery->manufacturer_len, battery->path, BAT_MANUFACTURER);
+  battery->model_name_len =
+      get_str(battery->model_name, battery->model_name_len, battery->path, BAT_MODEL_NAME);
+  battery->serial_number_len =
+      get_str(battery->serial_number, battery->serial_number_len, battery->path, BAT_SERIAL_NUMBER);
+  battery->technology_len =
+      get_str(battery->technology, battery->technology_len, battery->path, BAT_TECHNOLOGY);
+  battery->type_len =
+      get_str(battery->type, battery->type_len, battery->path, BAT_TYPE);
   battery->status_len =
-      get_value_from_file(cur_path, battery->status, BAT_STR_SIZE);
+    get_str(battery->status, battery->status_len, battery->path, BAT_STATUS);
+
+}
+
+static int get_int(char *path, char *filename) {
+  char *cur_path = join_path(path, filename);
+  int ret = (is_file(cur_path)) ? get_int_from_file(cur_path) : 0;
   free(cur_path);
+  return ret;
+}
+
+static long get_long(char *path, char *filename) {
+  char *cur_path = join_path(path, filename);
+  long ret = (is_file(cur_path)) ? get_long_from_file(cur_path) : 0;
+  free(cur_path);
+  return ret;
+}
+
+// TODO what if file does not exists?
+static size_t get_str(char *buf, size_t len, char *path, char *filename) {
+  size_t out_len = len;
+  char *cur_path = join_path(path, filename);
+  out_len =
+      get_value_from_file(cur_path, buf, BAT_STR_SIZE);
+  if (buf[out_len - 1] == '\n') {
+    buf[out_len - 1] = '\0';
+    out_len--;
+  }
+  free(cur_path);
+  return out_len;
 }
 
 void free_batteries(struct batteries *batteries) {

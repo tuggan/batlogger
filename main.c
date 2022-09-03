@@ -103,7 +103,7 @@ char saveToFile(char *filename, batteries *batteries) {
                       ti->tm_sec);
     for (int i = 0; i < batteries->num_batteries; i++) {
       battery *bat = batteries->batteries[i];
-      ret = fprintf(f, "%s %d %ld %s ", bat->name, bat->capacity, bat->energy_full, bat->status);
+      ret = fprintf(f, "%s %s %d %ld %s ", bat->name, bat->type, bat->capacity, bat->energy_full, bat->status);
 
     }
     fprintf(f, "\n");

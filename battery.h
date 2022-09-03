@@ -83,7 +83,10 @@ typedef struct batteries {
 struct batteries *get_batteries();
 struct battery *initiate_battery(char *name);
 void get_battery(struct battery *battery);
-void free_batteries(struct batteries *batteries);
-void free_battery(struct battery *battery);
+static int get_int(char *path, char *filename);
+static long get_long(char *path, char *filename);
+static size_t get_str(char *buf, size_t len, char *path, char *filename);
+void free_batteries(struct batteries * batteries);
+void free_battery(struct battery * battery);
 
 #endif // BATTERY_H
