@@ -40,13 +40,8 @@
 
 
 void printHelp(char *name);
-void logLoop(char *batfile, char *batmax, char *logfile, long sleeptime);
-void getAverageVals(char *batfile, long *old, long sleeptime);
-void moveBackOld(long *old, long size);
-long getAverage(long *values, long size);
+void logLoop(char *logfile, long sleeptime);
 void sighandler(int signo);
-void writePid(char *file);
-void deletePid(char *file);
 char saveToFile(char *filename, batteries *batteries);
 
 

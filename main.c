@@ -18,21 +18,16 @@
 #include "main.h"
 
 int running = 1;
-long oldSize;
 
 int main(int argc, char *argv[]) {
-    bool daemonize;
     int opt;
-    char logfile[] = LOGFILE, pidfile[] = PIDFILE, batfile[] = BATPATH, batmax[] = BATMAX;
+    char logfile[] = LOGFILE;
     int sleeptime = SLEEPTIME;
-    while((opt = getopt(argc, argv, "hdS:P:b:")) != -1) {
+    while((opt = getopt(argc, argv, "hS:")) != -1) {
         switch(opt) {
         case 'h':
           printHelp(argv[0]);
           exit(0);
-        case 'd':
-            daemonize = true;
-            break;
         case 'S':
             sleeptime = atoi(optarg);
             if(sleeptime < 1)
@@ -41,30 +36,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if(daemonize) {
-        int pid = fork();
-        if(pid == 0) {
-            int fd = open("/dev/null", O_RDWR);
-            if(fd == -1) {
-                fprintf(stderr, "Could not open /dev/null "\
-                        "for output redirecting.\n");
-            } else {
-                dup2(fd, STDIN_FILENO);
-                dup2(fd, STDOUT_FILENO);
-                dup2(fd, STDERR_FILENO);
-                close(fd);
-            }
-        } else {
-            printf("Daemonized process.\n");
-            exit(0);
-        }
-    }
     signal(SIGINT, sighandler);
     signal(SIGTERM, sighandler);
     signal(SIGCONT, sighandler);
-    writePid(pidfile);
-    logLoop(batfile, batmax, logfile, sleeptime * 1000L);
-    deletePid(pidfile);
+    logLoop(logfile, sleeptime * 1000L);
     return 0;
 }
 
@@ -77,45 +52,17 @@ void printHelp(char *name) {
         -S <seconds>: Time to sleep in seconds?\n", name);
 }
 
-void logLoop(char *batfile, char *batmax, char *logfile, long sleeptime) {
-    oldSize = 0;
+void logLoop(char *logfile, long sleeptime) {
     batteries *batteries = get_batteries();
     while(running) {
       for (int i = 0; i < batteries->num_batteries; i++) {
         get_battery(batteries->batteries[i]);
         printf("Bat: %s %d\n", batteries->batteries[i]->name, batteries->batteries[i]->capacity);
       }
-      //getAverageVals(batfile, old, sleeptime);
-        //getValueFromFile(batmax, max, 10);
         saveToFile(logfile, batteries);
         usleep(sleeptime/10);
     }
     free_batteries(batteries);
-}
-
-void getAverageVals(char *batfile, long *old, long sleeptime) {
-    char batstr[10];
-    for(oldSize = 0; oldSize < 10 && running; oldSize++) {
-      //getValueFromFile(batfile, batstr, 10);
-            moveBackOld(old, oldSize);
-            old[0] = atol(batstr);
-            usleep(sleeptime/10);
-        }
-}
-
-void moveBackOld(long *old, long size) {
-    long i;
-    for(i = size; i > 0; i--)
-        old[i] = old[i-1];
-}
-
-long getAverage(long *values, long size) {
-    long long sum = 0;
-    long i;
-    for(i = 0; i < size; i++)
-        sum += values[i];
-    long ret = sum/size;
-    return ret;
 }
 
 void sighandler(int signo) {
@@ -125,21 +72,8 @@ void sighandler(int signo) {
         running = 0;
         break;
     case SIGCONT:
-        oldSize = 0;
         break;
     }
-}
-
-void writePid(char *file) {
-    FILE *f = fopen(file, "w");
-    if(f != NULL) {
-        fprintf(f, "%i", getpid());
-        fclose(f);
-    }
-}
-
-void deletePid(char *file) {
-    remove(file);
 }
 
 char saveToFile(char *filename, batteries *batteries) {
@@ -166,7 +100,7 @@ char saveToFile(char *filename, batteries *batteries) {
 
     }
     fprintf(f, "\n");
-    
+
     fclose(f);
     return ret;
 }
